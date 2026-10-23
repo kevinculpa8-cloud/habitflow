@@ -1,0 +1,98 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102b20">
+<title>HabitFlow</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101914;color:#f1f6f1;font:16px system-ui,sans-serif}
+main{max-width:720px;margin:auto;padding:24px 18px}
+header{padding:20px 0}
+h1{font-size:32px;margin:0}
+p{color:#a8b8ad}
+.stats,.habit{background:#1c2921;border:1px solid #304238;border-radius:16px;padding:16px;margin:12px 0}
+.stats{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.big{font-size:28px;font-weight:800}
+button,input,select{font:inherit;border-radius:10px;padding:11px;border:1px solid #405548}
+button{background:#83e6ac;color:#102b20;font-weight:700;cursor:pointer}
+input,select{background:#101914;color:white;min-width:0}
+form{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+form input{flex:1}
+.habit{display:flex;align-items:center;gap:12px}
+.habit span{flex:1}
+.habit small{display:block;color:#a8b8ad}
+.done{text-decoration:line-through;opacity:.6}
+.bar{height:8px;background:#304238;border-radius:10px;overflow:hidden;margin-top:12px}
+.fill{height:100%;background:#83e6ac;width:0}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div>🌱 HABIT TRACKER</div>
+<h1>HabitFlow.</h1>
+<p>Small steps. Real progress.</p>
+</header>
+<div class="stats">
+<div><small>COMPLETED TODAY</small><div class="big" id="count">0/0</div></div>
+<div><small>DAILY PROGRESS</small><div class="big" id="percent">0%</div></div>
+</div>
+<div class="bar"><div class="fill" id="fill"></div></div>
+<h2>Today's habits ☀️</h2>
+<form id="form">
+<input id="name" placeholder="Add a new habit..." required maxlength="60">
+<button>Add +</button>
+</form>
+<div id="habits"></div>
+<h2>📊 Your analytics</h2>
+<div class="stats">
+<div><small>TOTAL CHECK-INS</small><div class="big" id="total">0</div></div>
+<div><small>ACTIVE HABITS</small><div class="big" id="active">0</div></div>
+</div>
+<p>Your progress is saved on this device when browser storage is available.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let habits=[];
+try{habits=JSON.parse(localStorage.getItem('habitflow-habits')||'[]')}catch(e){}
+if(!habits.length)habits=[
+{id:1,name:'Drink water',done:false},
+{id:2,name:'Read 10 pages',done:false},
+{id:3,name:'Exercise',done:false}
+];
+function save(){try{localStorage.setItem('habitflow-habits',JSON.stringify(habits))}catch(e){}}
+function render(){
+$('habits').innerHTML='';
+let finished=habits.filter(h=>h.done).length;
+$('count').textContent=finished+'/'+habits.length;
+let p=habits.length?Math.round(finished/habits.length*100):0;
+$('percent').textContent=p+'%';$('fill').style.width=p+'%';
+$('active').textContent=habits.length;
+$('total').textContent=habits.filter(h=>h.done).length;
+habits.forEach(h=>{
+let row=document.createElement('div');row.className='habit';
+let check=document.createElement('button');
+check.textContent=h.done?'✓':'○';
+check.onclick=()=>{h.done=!h.done;save();render()};
+let label=document.createElement('span');
+label.textContent=h.name;if(h.done)label.className='done';
+let small=document.createElement('small');small.textContent='Daily habit';
+label.appendChild(small);
+let del=document.createElement('button');del.textContent='×';
+del.setAttribute('aria-label','Delete '+h.name);
+del.onclick=()=>{habits=habits.filter(x=>x.id!==h.id);save();render()};
+row.append(check,label,del);$('habits').appendChild(row);
+});
+}
+$('form').onsubmit=e=>{
+e.preventDefault();let name=$('name').value.trim();if(!name)return;
+habits.push({id:Date.now(),name,done:false});
+$('name').value='';save();render();
+};
+render();
+</script>
+</body>
+  </html>
